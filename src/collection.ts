@@ -1,16 +1,15 @@
 import fs from "fs-extra";
 import _, { each, method } from "lodash";
 import path from "path";
-import jsonToBru from "../jsonToBru";
+import jsonToBru from "./jsonToBru";
 import {
   MethodClass,
   OpenAPI,
   PurpleParameter,
   TagClass,
   RequestBody,
-} from "../types";
-import { Mode } from "../swaggerToBruno";
-import { IPathDict } from "./excelData";
+} from "./types";
+import { Mode } from "./openApiToBruno";
 
 const FOLDER_NAME = "API";
 
@@ -256,7 +255,6 @@ ${docsJson || ""}
 const makeBruno = (
   collectionData: OpenAPI,
   mode: Mode,
-  pathDict: IPathDict
 ) => {
   _.each(collectionData.paths, (colletionPath, pathName) => {
     let seq = 1;
@@ -264,12 +262,8 @@ const makeBruno = (
       const tag = method.tags[0];
 
       const url = pathName.replace("/api/v1", "");
-      const fileId = pathDict[url];
 
       let fileBaseName = method.operationId;
-      if (fileId) {
-        fileBaseName = fileBaseName + " [" + fileId + "]";
-      }
 
       const filePath = path.join(
         FOLDER_NAME,

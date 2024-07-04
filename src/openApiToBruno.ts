@@ -10,7 +10,6 @@ import { OpenAPI } from "./types";
 
 import yars from "yargs";
 import { hideBin } from "yargs/helpers";
-import { excelDataLoad } from "./src/excelData";
 import path from "path";
 
 export type Mode = "start" | "update";
@@ -52,9 +51,7 @@ async function main() {
     initEnv();
   }
 
-  const pathDict = excelDataLoad("excel.txt");
-
-  makeBruno(collectionData, mode, pathDict);
+  makeBruno(collectionData, mode);
 }
 
 main();
