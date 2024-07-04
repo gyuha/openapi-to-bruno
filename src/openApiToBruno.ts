@@ -8,33 +8,40 @@ import {
 } from "./collection";
 import { OpenAPI } from "./types";
 
-import yars from "yargs";
 import { hideBin } from "yargs/helpers";
-import path from "path";
+import { program } from "commander";
 
 export type Mode = "start" | "update";
 
-const SwaggerUrl =
-  "http://172.30.0.22:8080/v3/api-docs/00%20%EC%A0%84%EC%B2%B4%20API";
-
 async function main() {
-  const argv = yars(hideBin(process.argv)).option("u", {
-    alias: "update",
-    type: "boolean",
-    description: "Set update mode",
-  }).argv as {
-    [x: string]: unknown;
-    u: boolean | undefined;
-  };
+  program
+    .name('openApiToBruno')
+    .version('0.1.0')
+    .description('Convert Swagger to Bruno')
+    .option('-s, --source <type>', 'OpenAPI URL or file path')
+    .option('-o, --output <type>', 'Output folder')
+    .option('-u, --update', 'Do not delete existing files')
+    .parse(process.argv);
 
-  let mode: Mode = "start";
+  const options = program.opts();
+  let mode: Mode = 'start';
 
-  if (argv.u) {
-    mode = "update";
-    console.log("📢 Update mode");
+  if (options.update) {
+    mode = 'update';
+    console.log('📢 Update mode');
   }
 
-  const data = await axios.get(SwaggerUrl);
+  if (!options.source) {
+    console.error('Error: Source (OpenAPI URL or file path) must be specified');
+    process.exit(1);
+  }
+
+  if (!options.output) {
+    console.error('Error: Output folder must be specified');
+    process.exit(1);
+  }
+
+  const data = await axios.get(options.source);
   const collectionData: OpenAPI = data.data;
 
   if (!checkApi(collectionData)) {

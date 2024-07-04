@@ -4,8 +4,8 @@
   "description": "",
   "main": "swaggerToBruno.js",
   "scripts": {
-    "start": "ts-node src/cswaggerToBruno.ts",
-    "update": "ts-node src/swaggerToBruno.ts -u",
+    "start": "ts-node src/openApiToBruno.ts -s http://172.30.0.122:8080/v3/api-docs -o ./output",
+    "update": "ts-node src/openApiToBruno.ts -u",
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -15,11 +15,12 @@
     "@types/fs-extra": "^11.0.3",
     "@types/node": "^20.8.10",
     "axios": "^1.6.0",
+    "chalk": "^5.3.0",
+    "commander": "^12.1.0",
     "fs-extra": "^11.1.1",
     "js-yaml": "^4.1.0",
     "lodash": "^4.17.21",
-    "lodash-es": "^4.17.21",
-    "yargs": "^17.7.2"
+    "lodash-es": "^4.17.21"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.200",
