@@ -13,14 +13,30 @@ import { Mode } from "./openApiToBruno";
 
 const FOLDER_NAME = "API";
 
-function makeBurnoRootFile(version: string, name: string) {
+// outputPath 폴더가 존재하는지 확인하고, 없으면 생성하는 함수
+function ensureDirectoryExistence(filePath: string) {
+  var dirname = path.dirname(filePath);
+  if (fs.existsSync(dirname)) {
+    return true;
+  }
+  ensureDirectoryExistence(dirname);
+  fs.mkdirSync(dirname);
+}
+
+
+function makeBurnoRootFile(outputPath: string, version: string, name: string) {
   const json = {
     version,
     name,
     type: "collection",
   };
+
+  const brunoFilePath = path.join(outputPath, "bruno.json");
+
+  ensureDirectoryExistence(brunoFilePath);
+
   fs.writeFileSync(
-    path.join(FOLDER_NAME, "bruno.json"),
+    brunoFilePath,
     JSON.stringify(json, null, 2)
   );
 }
@@ -39,12 +55,6 @@ function deleteFolderRecursive(directory: string): void {
     });
     fs.rmdirSync(directory);
   }
-}
-
-function initEnv() {
-  const envPath = path.join("defaultEnv");
-  const tarPath = path.join(FOLDER_NAME, "environments");
-  fs.copySync(envPath, tarPath);
 }
 
 function exscapePath(name: string): string {
@@ -88,12 +98,16 @@ const checkApi = (collectionData: OpenAPI): boolean => {
   return true;
 };
 
-const makeFolders = (collectionData: TagClass[], mode: Mode) => {
+const makeFolders = (
+  outputPath: string,
+  collectionData: TagClass[],
+  mode: Mode
+) => {
   try {
-    if (mode === "start") deleteFolderRecursive(FOLDER_NAME);
+    if (mode === "start") deleteFolderRecursive(outputPath);
 
     _.each(collectionData, (tag: TagClass) => {
-      const folderName = path.join(FOLDER_NAME, exscapePath(tag.name));
+      const folderName = path.join(outputPath, exscapePath(tag.name));
       if (!fs.existsSync(folderName)) {
         fs.mkdirSync(folderName, { recursive: true });
       } else {
@@ -117,7 +131,7 @@ const objectRefDocs = (ref: string, components: any) => {
   let refData = components[refs[1]][refs[2]];
 
   if (refData.type === "object") {
-    refDocs += `## ${refData.description || refs[refs.length - 1] || ''}
+    refDocs += `## ${refData.description || refs[refs.length - 1] || ""}
 | name | type | description | format |
 | ---- | ---- | ----------- | ------ |
 `;
@@ -252,10 +266,7 @@ ${docsJson || ""}
   return content;
 };
 
-const makeBruno = (
-  collectionData: OpenAPI,
-  mode: Mode,
-) => {
+const makeBruno = (outputPath: string, collectionData: OpenAPI, mode: Mode) => {
   _.each(collectionData.paths, (colletionPath, pathName) => {
     let seq = 1;
     _.each(colletionPath, (method, methodType) => {
@@ -266,7 +277,7 @@ const makeBruno = (
       let fileBaseName = method.operationId;
 
       const filePath = path.join(
-        FOLDER_NAME,
+        outputPath,
         exscapePath(tag),
         fileBaseName + ".bru"
       );
@@ -295,4 +306,4 @@ const makeBruno = (
   });
 };
 
-export { checkApi, makeBruno, makeFolders, makeBurnoRootFile, initEnv };
+export { checkApi, makeBruno, makeFolders, makeBurnoRootFile };
