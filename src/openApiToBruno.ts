@@ -83,7 +83,6 @@ async function main() {
   }
 
   const outputPath = path.join(options.output);
-  console.log('📢[openApiToBruno.ts:86]: outputPath: ', outputPath);
 
   // outputPath 폴더가 존재하지 않는 경우 폴더를 생성합니다.
   if (!fs.existsSync(outputPath)) {

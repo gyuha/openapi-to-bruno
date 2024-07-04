@@ -23,7 +23,6 @@ function ensureDirectoryExistence(filePath: string) {
   fs.mkdirSync(dirname);
 }
 
-
 function makeBurnoRootFile(outputPath: string, version: string, name: string) {
   const json = {
     version,
@@ -32,13 +31,9 @@ function makeBurnoRootFile(outputPath: string, version: string, name: string) {
   };
 
   const brunoFilePath = path.join(outputPath, "bruno.json");
-
   ensureDirectoryExistence(brunoFilePath);
 
-  fs.writeFileSync(
-    brunoFilePath,
-    JSON.stringify(json, null, 2)
-  );
+  fs.writeFileSync(brunoFilePath, JSON.stringify(json, null, 2));
 }
 
 function deleteFolderRecursive(directory: string): void {
@@ -245,12 +240,14 @@ const makeBrunoFile = (
   }
 
   const script: any = {};
-  if (path.includes("auth/login")) {
-    script.res = `
-bru.setEnvVar("accessToken", res.body.data.token.accessToken);
-bru.setEnvVar("refreshToken", res.body.data.token.refreshToken);  
-`;
-  }
+
+  //   if (path.includes("auth/login")) {
+  //     script.res = `
+  // bru.setEnvVar("accessToken", res.body.data.token.accessToken);
+  // bru.setEnvVar("refreshToken", res.body.data.token.refreshToken);
+  // `;
+  //   }
+
   const docs =
     (method.summary || docsJson) &&
     `# ${method.summary}
@@ -262,7 +259,7 @@ ${docsJson || ""}
 
   const json = { meta, http, auth, docs, script, body, query };
   const content = jsonToBru(json);
-  // console.log("📢[collection.ts:148]: content: ", content);
+
   return content;
 };
 
@@ -272,13 +269,12 @@ const makeBruno = (outputPath: string, collectionData: OpenAPI, mode: Mode) => {
     _.each(colletionPath, (method, methodType) => {
       const tag = method.tags[0];
 
-      const url = pathName.replace("/api/v1", "");
-
       let fileBaseName = method.operationId;
 
       const filePath = path.join(
         outputPath,
-        exscapePath(tag),
+        pathName,
+        // exscapePath(tag),
         fileBaseName + ".bru"
       );
 
