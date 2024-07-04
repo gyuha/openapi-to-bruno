@@ -26,19 +26,30 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.initEnv = exports.makeBurnoRootFile = exports.makeFolders = exports.makeBruno = exports.checkApi = void 0;
+exports.makeBurnoRootFile = exports.makeFolders = exports.makeBruno = exports.checkApi = void 0;
 const fs_extra_1 = __importDefault(require("fs-extra"));
 const lodash_1 = __importStar(require("lodash"));
 const path_1 = __importDefault(require("path"));
 const jsonToBru_1 = __importDefault(require("./jsonToBru"));
 const FOLDER_NAME = "API";
-function makeBurnoRootFile(version, name) {
+// outputPath 폴더가 존재하는지 확인하고, 없으면 생성하는 함수
+function ensureDirectoryExistence(filePath) {
+    var dirname = path_1.default.dirname(filePath);
+    if (fs_extra_1.default.existsSync(dirname)) {
+        return true;
+    }
+    ensureDirectoryExistence(dirname);
+    fs_extra_1.default.mkdirSync(dirname);
+}
+function makeBurnoRootFile(outputPath, version, name) {
     const json = {
         version,
         name,
         type: "collection",
     };
-    fs_extra_1.default.writeFileSync(path_1.default.join(FOLDER_NAME, "bruno.json"), JSON.stringify(json, null, 2));
+    const brunoFilePath = path_1.default.join(outputPath, "bruno.json");
+    ensureDirectoryExistence(brunoFilePath);
+    fs_extra_1.default.writeFileSync(brunoFilePath, JSON.stringify(json, null, 2));
 }
 exports.makeBurnoRootFile = makeBurnoRootFile;
 function deleteFolderRecursive(directory) {
@@ -57,12 +68,6 @@ function deleteFolderRecursive(directory) {
         fs_extra_1.default.rmdirSync(directory);
     }
 }
-function initEnv() {
-    const envPath = path_1.default.join("defaultEnv");
-    const tarPath = path_1.default.join(FOLDER_NAME, "environments");
-    fs_extra_1.default.copySync(envPath, tarPath);
-}
-exports.initEnv = initEnv;
 function exscapePath(name) {
     const invalidChars = /[<>:"/\\|?*]/g; // Regex for invalid characters
     const validName = name.replace(invalidChars, "_");
@@ -103,12 +108,12 @@ const checkApi = (collectionData) => {
     return true;
 };
 exports.checkApi = checkApi;
-const makeFolders = (collectionData, mode) => {
+const makeFolders = (outputPath, collectionData, mode) => {
     try {
         if (mode === "start")
-            deleteFolderRecursive(FOLDER_NAME);
+            deleteFolderRecursive(outputPath);
         lodash_1.default.each(collectionData, (tag) => {
-            const folderName = path_1.default.join(FOLDER_NAME, exscapePath(tag.name));
+            const folderName = path_1.default.join(outputPath, exscapePath(tag.name));
             if (!fs_extra_1.default.existsSync(folderName)) {
                 fs_extra_1.default.mkdirSync(folderName, { recursive: true });
             }
@@ -132,7 +137,7 @@ const objectRefDocs = (ref, components) => {
     let refs = ref.replace("#/", "").split("/");
     let refData = components[refs[1]][refs[2]];
     if (refData.type === "object") {
-        refDocs += `## ${refData.description || refs[refs.length - 1] || ''}
+        refDocs += `## ${refData.description || refs[refs.length - 1] || ""}
 | name | type | description | format |
 | ---- | ---- | ----------- | ------ |
 `;
@@ -213,13 +218,19 @@ const makeBrunoFile = (seq, path, methodType, name, method, components) => {
     if (method.parameters) {
         docsJson = paramter(method);
     }
-    const script = {};
-    if (path.includes("auth/login")) {
-        script.res = `
-bru.setEnvVar("accessToken", res.body.data.token.accessToken);
-bru.setEnvVar("refreshToken", res.body.data.token.refreshToken);  
+    if (method.operationId) {
+        docsJson = `
+----
+OperationId : \`${method.operationId}\`
 `;
     }
+    const script = {};
+    //   if (path.includes("auth/login")) {
+    //     script.res = `
+    // bru.setEnvVar("accessToken", res.body.data.token.accessToken);
+    // bru.setEnvVar("refreshToken", res.body.data.token.refreshToken);
+    // `;
+    //   }
     const docs = (method.summary || docsJson) &&
         `# ${method.summary}
 
@@ -229,17 +240,16 @@ ${docsJson || ""}
 `;
     const json = { meta, http, auth, docs, script, body, query };
     const content = (0, jsonToBru_1.default)(json);
-    // console.log("📢[collection.ts:148]: content: ", content);
     return content;
 };
-const makeBruno = (collectionData, mode) => {
+const makeBruno = (outputPath, collectionData, mode) => {
     lodash_1.default.each(collectionData.paths, (colletionPath, pathName) => {
         let seq = 1;
         lodash_1.default.each(colletionPath, (method, methodType) => {
+            var _a;
             const tag = method.tags[0];
-            const url = pathName.replace("/api/v1", "");
-            let fileBaseName = method.operationId;
-            const filePath = path_1.default.join(FOLDER_NAME, exscapePath(tag), fileBaseName + ".bru");
+            let fileBaseName = ((_a = method.summary) === null || _a === void 0 ? void 0 : _a.trim()) || method.operationId || "noname";
+            const filePath = path_1.default.join(outputPath, pathName, fileBaseName + ".bru");
             const data = makeBrunoFile(seq++, pathName, methodType, fileBaseName, method, collectionData.components);
             if (mode == "update" && fs_extra_1.default.existsSync(filePath)) {
                 console.log("📢 Skip : ", filePath);

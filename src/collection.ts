@@ -276,7 +276,6 @@ const makeBruno = (outputPath: string, collectionData: OpenAPI, mode: Mode) => {
     _.each(colletionPath, (method, methodType) => {
       const tag = method.tags[0];
 
-      console.log('📢[collection.ts:272]: method: ', method);
       let fileBaseName = method.summary?.trim() || method.operationId || "noname";
 
       const filePath = path.join(
