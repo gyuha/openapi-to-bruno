@@ -239,6 +239,13 @@ const makeBrunoFile = (
     docsJson = paramter(method);
   }
 
+  if (method.operationId) {
+    docsJson = `
+----
+OperationId : \`${method.operationId}\`
+`
+  }
+
   const script: any = {};
 
   //   if (path.includes("auth/login")) {
@@ -269,12 +276,12 @@ const makeBruno = (outputPath: string, collectionData: OpenAPI, mode: Mode) => {
     _.each(colletionPath, (method, methodType) => {
       const tag = method.tags[0];
 
-      let fileBaseName = method.operationId;
+      console.log('📢[collection.ts:272]: method: ', method);
+      let fileBaseName = method.summary?.trim() || method.operationId || "noname";
 
       const filePath = path.join(
         outputPath,
         pathName,
-        // exscapePath(tag),
         fileBaseName + ".bru"
       );
 
