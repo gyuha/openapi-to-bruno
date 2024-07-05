@@ -29,6 +29,6 @@
     "typescript": "^5.2.2"
   },
   "bin": {
-    "openApiToBruno": "./dist/openApiToBruno.js"
+    "openapi-to-bruno": "./dist/openApiToBruno.js"
   }
 }
