@@ -55,54 +55,60 @@ async function fetchDataOrReadFile(source: string) {
 }
 
 async function main() {
-  program
-    .name("openApiToBruno")
-    .version("0.1.0")
-    .description("Convert Swagger to Bruno")
-    .option("-s, --source <type>", "OpenAPI URL or file path")
-    .option("-o, --output <type>", "Output folder")
-    .option("-u, --update", "Do not delete existing files")
-    .parse(process.argv);
+  try {
+    program
+      .name("openApiToBruno")
+      .version("0.1.0")
+      .description("Convert Swagger to Bruno")
+      .option("-s, --source <type>", "OpenAPI URL or file path")
+      .option("-o, --output <type>", "Output folder")
+      .option("-u, --update", "Do not delete existing files")
+      .parse(process.argv);
 
-  const options = program.opts();
-  let mode: Mode = "start";
+    const options = program.opts();
+    let mode: Mode = "start";
 
-  if (options.update) {
-    mode = "update";
-    console.log("📢 Update mode");
-  }
+    if (options.update) {
+      mode = "update";
+      console.log("📢 Update mode");
+    }
 
-  if (!options.source) {
-    console.error("Error: Source (OpenAPI URL or file path) must be specified");
+    if (!options.source) {
+      console.error(
+        "Error: Source (OpenAPI URL or file path) must be specified"
+      );
+      process.exit(1);
+    }
+
+    if (!options.output) {
+      console.error("Error: Output folder must be specified");
+      process.exit(1);
+    }
+
+    const outputPath = path.join(options.output);
+
+    // outputPath 폴더가 존재하지 않는 경우 폴더를 생성합니다.
+    if (!fs.existsSync(outputPath)) {
+      fs.mkdirSync(outputPath, { recursive: true });
+    }
+
+    const collectionData: OpenAPI = await fetchDataOrReadFile(options.source);
+
+    if (!checkApi(collectionData)) {
+      return;
+    }
+
+    if (!makeFolders(outputPath, collectionData.tags, mode)) {
+      return;
+    }
+
+    makeBurnoRootFile(outputPath, "1", collectionData.info.title);
+
+    makeBruno(outputPath, collectionData, mode);
+  } catch (error: any) {
+    console.error(error.message);
     process.exit(1);
   }
-
-  if (!options.output) {
-    console.error("Error: Output folder must be specified");
-    process.exit(1);
-  }
-
-  const outputPath = path.join(options.output);
-
-  // outputPath 폴더가 존재하지 않는 경우 폴더를 생성합니다.
-  if (!fs.existsSync(outputPath)) {
-    fs.mkdirSync(outputPath, { recursive: true });
-  }
-
-  const collectionData: OpenAPI = await fetchDataOrReadFile(options.source);
-
-  if (!checkApi(collectionData)) {
-    return;
-  }
-
-  if (!makeFolders(outputPath, collectionData.tags, mode)) {
-    return;
-  }
-
-  makeBurnoRootFile(outputPath, "1", collectionData.info.title);
-
-  makeBruno(outputPath, collectionData, mode);
 }
-
 console.log("🚀 Start converting OpenAPI to Bruno...");
 main();
