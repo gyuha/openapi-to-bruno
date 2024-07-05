@@ -78,7 +78,7 @@ const buildQuery = (params: PurpleParameter[]) => {
   _.each(params, (param) => {
     _query.push({
       name: param.name,
-      value: param.schema.default || "",
+      value: param.schema && param.schema.default || "",
       enabled: param.required,
     });
   });
@@ -189,9 +189,9 @@ const paramter = (method: MethodClass) => {
 `;
 
   each(method.parameters, (param) => {
-    const line = `| ${param.name} | ${param.schema.type} | ${
+    const line = `| ${param.name} | ${param.schema && param.schema.type || 'type'} | ${
       param.description || ""
-    } | ${param.required} | ${param.schema.format || ""} |
+    } | ${param.required} | ${param.schema && param.schema.format || ""} |
 `;
     docsJson += line;
   });

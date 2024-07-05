@@ -94,7 +94,7 @@ const buildQuery = (params) => {
     lodash_1.default.each(params, (param) => {
         _query.push({
             name: param.name,
-            value: param.schema.default || "",
+            value: param.schema && param.schema.default || "",
             enabled: param.required,
         });
     });
@@ -187,7 +187,7 @@ const paramter = (method) => {
 | ---- | ---- | ----------- | -------- | ------ |
 `;
     (0, lodash_1.each)(method.parameters, (param) => {
-        const line = `| ${param.name} | ${param.schema.type} | ${param.description || ""} | ${param.required} | ${param.schema.format || ""} |
+        const line = `| ${param.name} | ${param.schema && param.schema.type || 'type'} | ${param.description || ""} | ${param.required} | ${param.schema && param.schema.format || ""} |
 `;
         docsJson += line;
     });
