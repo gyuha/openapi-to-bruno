@@ -204,6 +204,7 @@ const makeBrunoFile = (seq, path, methodType, name, method, components) => {
         url: "{{host}}" + path,
     };
     const auth = {};
+
     if (method.operationId !== "login") {
         auth.bearer = { token: "{{accessToken}}" };
         http.auth = "bearer";
@@ -225,12 +226,7 @@ OperationId : \`${method.operationId}\`
 `;
     }
     const script = {};
-    //   if (path.includes("auth/login")) {
-    //     script.res = `
-    // bru.setEnvVar("accessToken", res.body.data.token.accessToken);
-    // bru.setEnvVar("refreshToken", res.body.data.token.refreshToken);
-    // `;
-    //   }
+
     const docs = (method.summary || docsJson) &&
         `# ${method.summary}
 

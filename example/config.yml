@@ -1,0 +1,20 @@
+info:
+  title: Best Fetstore
+
+update:
+  ignore:
+    folders:
+      - /pet/findByTags
+      - /user
+    ids:
+      - addPet
+
+auth:
+  type: bearer
+  value:
+    token: "{{accessToken}}"
+  ignore:
+    ids:
+      - login
+    folders:
+      - /user

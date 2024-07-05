@@ -11,9 +11,6 @@ import {
 } from "./types";
 import { Mode } from "./openApiToBruno";
 
-const FOLDER_NAME = "API";
-
-// outputPath 폴더가 존재하는지 확인하고, 없으면 생성하는 함수
 function ensureDirectoryExistence(filePath: string) {
   var dirname = path.dirname(filePath);
   if (fs.existsSync(dirname)) {
@@ -28,6 +25,7 @@ function makeBurnoRootFile(outputPath: string, version: string, name: string) {
     version,
     name,
     type: "collection",
+    ignore: ["node_modules", ".git"],
   };
 
   const brunoFilePath = path.join(outputPath, "bruno.json");

@@ -11,8 +11,36 @@ import { OpenAPI } from "./types";
 import { program } from "commander";
 import fs from "fs";
 import path from "path";
+import yaml from "js-yaml";
 
 export type Mode = "start" | "update";
+
+interface IgnoreFile {
+  folders?: string[];
+  ids?: string[];
+}
+
+interface ConfigFile {
+  info?: {
+    title?: string;
+  };
+  update?: {
+    ignore?: IgnoreFile;
+  };
+  auth?: {
+    type?:
+      | "none"
+      | "awsv4"
+      | "basic"
+      | "bearer"
+      | "basic"
+      | "digest"
+      | "oauth2"
+      | "inherit";
+    values?: { [key: string]: string };
+    ignore?: IgnoreFile;
+  };
+}
 
 // URL 형식을 확인하는 함수
 function isUrl(string: string): boolean {
@@ -55,6 +83,15 @@ async function fetchDataOrReadFile(source: string) {
   }
 }
 
+async function readConfigFile(filePath: string): Promise<ConfigFile> {
+  try {
+    const data = fs.readFileSync(filePath, "utf8");
+    return filePath.endsWith(".yaml") || filePath.endsWith(".yml") ? yaml.load(data) as ConfigFile : JSON.parse(data);
+  } catch (error) {
+    throw new Error(`Failed to read config file: ${filePath}`);
+  }
+}
+
 async function main() {
   try {
     program
@@ -64,6 +101,7 @@ async function main() {
       .option("-s, --source <type>", "OpenAPI URL or file path")
       .option("-o, --output <type>", "Output folder")
       .option("-u, --update", "Do not delete existing files")
+      .option("-c, --config <type>", "Config file")
       .parse(process.argv);
 
     const options = program.opts();
@@ -84,6 +122,17 @@ async function main() {
     if (!options.output) {
       console.error("Error: Output folder must be specified");
       process.exit(1);
+    }
+
+    let config: ConfigFile | undefined = undefined;
+    if (options.config) {
+      try {
+        config = await readConfigFile(options.config);
+        console.log("Config file loaded:", config);
+      } catch (error: any) {
+        console.error(error.message);
+        process.exit(1);
+      }
     }
 
     const outputPath = path.join(options.output);
@@ -111,5 +160,5 @@ async function main() {
     process.exit(1);
   }
 }
-console.log("🚀 Start converting OpenAPI to Bruno...");
+
 main();

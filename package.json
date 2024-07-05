@@ -4,7 +4,8 @@
   "description": "",
   "main": "./dist/openApiToBruno.js",
   "scripts": {
-    "start": "ts-node src/openApiToBruno.ts -s http://172.30.0.122:8080/v3/api-docs -o ./output",
+    "start": "ts-node src/openApiToBruno.ts -s http://172.30.0.122:8080/v3/api-docs -o ./output -c ./example/config.yml",
+    "start:build": "npx . -s http://172.30.0.122:8080/v3/api-docs -o ./output -c ./example/config.yaml",
     "update": "ts-node src/openApiToBruno.ts -u",
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -23,6 +24,7 @@
     "lodash-es": "^4.17.21"
   },
   "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
     "@types/lodash": "^4.14.200",
     "@types/yargs": "^17.0.30",
     "ts-node": "^10.9.1",
