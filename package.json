@@ -2,7 +2,7 @@
   "name": "open-api-to-bruno",
   "version": "1.0.0",
   "description": "",
-  "main": "swaggerToBruno.js",
+  "main": "./dist/openApiToBruno.js",
   "scripts": {
     "start": "ts-node src/openApiToBruno.ts -s http://172.30.0.122:8080/v3/api-docs -o ./output",
     "update": "ts-node src/openApiToBruno.ts -u",
