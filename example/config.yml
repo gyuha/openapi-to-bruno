@@ -5,9 +5,10 @@ update:
   ignore:
     folders:
       - /pet/findByTags
-      - /user
+      - /api/admin
     ids:
       - addPet
+      - uploadFile
 
 auth:
   type: bearer

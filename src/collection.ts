@@ -8,6 +8,9 @@ import {
   PurpleParameter,
   TagClass,
   RequestBody,
+  ConfigFile,
+  Mode,
+  IgnoreFile,
 } from "./types";
 
 function ensureDirectoryExistence(filePath: string) {
@@ -90,16 +93,27 @@ const checkApi = (collectionData: OpenAPI): boolean => {
   return true;
 };
 
-const checkIgnore = ({method, path, ignoreFile}:{method: MethodClass, path: string, ignoreFile?: IgnoreFile}): boolean => {
+const checkIgnore = ({
+  method,
+  path,
+  ignoreFile,
+}: {
+  method: MethodClass;
+  path: string;
+  ignoreFile?: IgnoreFile;
+}): boolean => {
   if (!ignoreFile) {
     return false;
   }
+
   if (method.operationId && ignoreFile.ids?.includes(method.operationId)) {
     return true;
   }
-
- return ignoreFile.folders?.some((folder) => folder.indexOf(path) > 0) || false;
-}
+  return (
+    ignoreFile.folders?.some((folder: string) =>  path.indexOf(folder) === 0) ||
+    false
+  );
+};
 
 const makeFolders = (
   outputPath: string,
@@ -239,7 +253,11 @@ const makeBrunoFile = ({
 
   const auth: any = {};
 
-  if (config && config?.auth && !checkIgnore({method, path, ignoreFile: config?.auth?.ignore})) {
+  if (
+    config &&
+    config?.auth &&
+    !checkIgnore({ method, path, ignoreFile: config?.auth?.ignore })
+  ) {
     http.auth = config.auth.type || "none";
     auth[config.auth.type || "none"] = config.auth.values;
   }
@@ -303,6 +321,24 @@ const makeBruno = ({
 
       const filePath = path.join(outputPath, pathName, fileBaseName + ".bru");
 
+      if (mode == "update" && fs.existsSync(filePath)) {
+        console.log("Skip : ", filePath);
+        return;
+      }
+
+      if (
+        config &&
+        config.update &&
+        checkIgnore({
+          method,
+          path: pathName,
+          ignoreFile: config.update.ignore,
+        })
+      ) {
+        console.log(`ignore : ${pathName} ${method.operationId}`);
+        return;
+      }
+
       const data = makeBrunoFile({
         seq: seq++,
         path: pathName,
@@ -313,19 +349,11 @@ const makeBruno = ({
         config,
       });
 
-      if (mode == "update" && fs.existsSync(filePath)) {
-        console.log("Skip : ", filePath);
-        return;
-      }
-
-      if (config && config.update && checkIgnore({method, path: pathName, ignoreFile: config.update.ignore})) {
-        return;
-      }
-
       if (!fs.existsSync(path.dirname(filePath))) {
         fs.mkdirSync(path.dirname(filePath), { recursive: true });
       }
 
+      console.log('Add : ', filePath);
       fs.writeFileSync(filePath, data, "utf-8");
     });
   });

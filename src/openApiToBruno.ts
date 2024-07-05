@@ -6,7 +6,7 @@ import {
   makeBurnoRootFile,
   makeFolders,
 } from "./collection";
-import { OpenAPI } from "./types";
+import { ConfigFile, Mode, OpenAPI } from "./types";
 
 import { program } from "commander";
 import fs from "fs";

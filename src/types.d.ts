@@ -134,3 +134,32 @@ export enum ResponseDescription {
   The0전체 = "0.전체",
   전체 = "전체",
 }
+
+export type Mode = "start" | "update";
+
+export interface IgnoreFile {
+  folders?: string[];
+  ids?: string[];
+}
+
+export interface ConfigFile {
+  info?: {
+    title?: string;
+  };
+  update?: {
+    ignore?: IgnoreFile;
+  };
+  auth?: {
+    type?:
+      | "none"
+      | "awsv4"
+      | "basic"
+      | "bearer"
+      | "basic"
+      | "digest"
+      | "oauth2"
+      | "inherit";
+    values?: { [key: string]: string };
+    ignore?: IgnoreFile;
+  };
+}
