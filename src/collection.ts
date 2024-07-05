@@ -9,7 +9,6 @@ import {
   TagClass,
   RequestBody,
 } from "./types";
-import { Mode } from "./openApiToBruno";
 
 function ensureDirectoryExistence(filePath: string) {
   var dirname = path.dirname(filePath);
@@ -76,7 +75,7 @@ const buildQuery = (params: PurpleParameter[]) => {
   _.each(params, (param) => {
     _query.push({
       name: param.name,
-      value: param.schema && param.schema.default || "",
+      value: (param.schema && param.schema.default) || "",
       enabled: param.required,
     });
   });
@@ -90,6 +89,17 @@ const checkApi = (collectionData: OpenAPI): boolean => {
   }
   return true;
 };
+
+const checkIgnore = ({method, path, ignoreFile}:{method: MethodClass, path: string, ignoreFile?: IgnoreFile}): boolean => {
+  if (!ignoreFile) {
+    return false;
+  }
+  if (method.operationId && ignoreFile.ids?.includes(method.operationId)) {
+    return true;
+  }
+
+ return ignoreFile.folders?.some((folder) => folder.indexOf(path) > 0) || false;
+}
 
 const makeFolders = (
   outputPath: string,
@@ -187,9 +197,11 @@ const paramter = (method: MethodClass) => {
 `;
 
   each(method.parameters, (param) => {
-    const line = `| ${param.name} | ${param.schema && param.schema.type || 'type'} | ${
-      param.description || ""
-    } | ${param.required} | ${param.schema && param.schema.format || ""} |
+    const line = `| ${param.name} | ${
+      (param.schema && param.schema.type) || "type"
+    } | ${param.description || ""} | ${param.required} | ${
+      (param.schema && param.schema.format) || ""
+    } |
 `;
     docsJson += line;
   });
@@ -197,14 +209,23 @@ const paramter = (method: MethodClass) => {
   return docsJson;
 };
 
-const makeBrunoFile = (
-  seq: number,
-  path: string,
-  methodType: string,
-  name: string,
-  method: MethodClass,
-  components: any
-): string => {
+const makeBrunoFile = ({
+  seq,
+  path,
+  methodType,
+  name,
+  method,
+  components,
+  config,
+}: {
+  seq: number;
+  path: string;
+  methodType: string;
+  name: string;
+  method: MethodClass;
+  config?: ConfigFile;
+  components: any;
+}): string => {
   const meta = {
     name,
     type: "http",
@@ -218,9 +239,9 @@ const makeBrunoFile = (
 
   const auth: any = {};
 
-  if (method.operationId !== "login") {
-    auth.bearer = { token: "{{accessToken}}" };
-    http.auth = "bearer";
+  if (config && config?.auth && !checkIgnore({method, path, ignoreFile: config?.auth?.ignore})) {
+    http.auth = config.auth.type || "none";
+    auth[config.auth.type || "none"] = config.auth.values;
   }
 
   const query = buildQuery(method.parameters || []);
@@ -241,17 +262,10 @@ const makeBrunoFile = (
     docsJson = `
 ----
 OperationId : \`${method.operationId}\`
-`
+`;
   }
 
   const script: any = {};
-
-  //   if (path.includes("auth/login")) {
-  //     script.res = `
-  // bru.setEnvVar("accessToken", res.body.data.token.accessToken);
-  // bru.setEnvVar("refreshToken", res.body.data.token.refreshToken);
-  // `;
-  //   }
 
   const docs =
     (method.summary || docsJson) &&
@@ -268,34 +282,45 @@ ${docsJson || ""}
   return content;
 };
 
-const makeBruno = (outputPath: string, collectionData: OpenAPI, mode: Mode) => {
+const makeBruno = ({
+  outputPath,
+  collectionData,
+  mode,
+  config,
+}: {
+  outputPath: string;
+  collectionData: OpenAPI;
+  mode: Mode;
+  config?: ConfigFile;
+}) => {
   _.each(collectionData.paths, (colletionPath, pathName) => {
     let seq = 1;
     _.each(colletionPath, (method, methodType) => {
       const tag = method.tags[0];
 
-      let fileBaseName = method.summary?.trim() || method.operationId || "noname";
+      let fileBaseName =
+        method.summary?.trim() || method.operationId || "noname";
 
-      const filePath = path.join(
-        outputPath,
-        pathName,
-        fileBaseName + ".bru"
-      );
+      const filePath = path.join(outputPath, pathName, fileBaseName + ".bru");
 
-      const data = makeBrunoFile(
-        seq++,
-        pathName,
+      const data = makeBrunoFile({
+        seq: seq++,
+        path: pathName,
         methodType,
-        fileBaseName,
+        name: fileBaseName,
         method,
-        collectionData.components
-      );
+        components: collectionData.components,
+        config,
+      });
 
       if (mode == "update" && fs.existsSync(filePath)) {
-        console.log("📢 Skip : ", filePath);
+        console.log("Skip : ", filePath);
         return;
       }
-      console.log("📢 Create : ", filePath);
+
+      if (config && config.update && checkIgnore({method, path: pathName, ignoreFile: config.update.ignore})) {
+        return;
+      }
 
       if (!fs.existsSync(path.dirname(filePath))) {
         fs.mkdirSync(path.dirname(filePath), { recursive: true });

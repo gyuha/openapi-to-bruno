@@ -13,35 +13,6 @@ import fs from "fs";
 import path from "path";
 import yaml from "js-yaml";
 
-export type Mode = "start" | "update";
-
-interface IgnoreFile {
-  folders?: string[];
-  ids?: string[];
-}
-
-interface ConfigFile {
-  info?: {
-    title?: string;
-  };
-  update?: {
-    ignore?: IgnoreFile;
-  };
-  auth?: {
-    type?:
-      | "none"
-      | "awsv4"
-      | "basic"
-      | "bearer"
-      | "basic"
-      | "digest"
-      | "oauth2"
-      | "inherit";
-    values?: { [key: string]: string };
-    ignore?: IgnoreFile;
-  };
-}
-
 // URL 형식을 확인하는 함수
 function isUrl(string: string): boolean {
   const urlPattern = new RegExp(
@@ -86,7 +57,9 @@ async function fetchDataOrReadFile(source: string) {
 async function readConfigFile(filePath: string): Promise<ConfigFile> {
   try {
     const data = fs.readFileSync(filePath, "utf8");
-    return filePath.endsWith(".yaml") || filePath.endsWith(".yml") ? yaml.load(data) as ConfigFile : JSON.parse(data);
+    return filePath.endsWith(".yaml") || filePath.endsWith(".yml")
+      ? (yaml.load(data) as ConfigFile)
+      : JSON.parse(data);
   } catch (error) {
     throw new Error(`Failed to read config file: ${filePath}`);
   }
@@ -154,7 +127,12 @@ async function main() {
 
     makeBurnoRootFile(outputPath, "1", collectionData.info.title);
 
-    makeBruno(outputPath, collectionData, mode);
+    makeBruno({
+      outputPath,
+      collectionData,
+      mode,
+      config,
+    });
   } catch (error: any) {
     console.error(error.message);
     process.exit(1);
