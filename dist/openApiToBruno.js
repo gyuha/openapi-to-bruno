@@ -97,4 +97,5 @@ function main() {
         (0, collection_1.makeBruno)(outputPath, collectionData, mode);
     });
 }
+console.log("🚀 Start converting OpenAPI to Bruno...");
 main();

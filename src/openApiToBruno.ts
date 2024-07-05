@@ -104,4 +104,5 @@ async function main() {
   makeBruno(outputPath, collectionData, mode);
 }
 
+console.log("🚀 Start converting OpenAPI to Bruno...");
 main();
