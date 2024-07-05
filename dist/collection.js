@@ -31,8 +31,6 @@ const fs_extra_1 = __importDefault(require("fs-extra"));
 const lodash_1 = __importStar(require("lodash"));
 const path_1 = __importDefault(require("path"));
 const jsonToBru_1 = __importDefault(require("./jsonToBru"));
-const FOLDER_NAME = "API";
-// outputPath 폴더가 존재하는지 확인하고, 없으면 생성하는 함수
 function ensureDirectoryExistence(filePath) {
     var dirname = path_1.default.dirname(filePath);
     if (fs_extra_1.default.existsSync(dirname)) {
@@ -46,6 +44,7 @@ function makeBurnoRootFile(outputPath, version, name) {
         version,
         name,
         type: "collection",
+        ignore: ["node_modules", ".git"],
     };
     const brunoFilePath = path_1.default.join(outputPath, "bruno.json");
     ensureDirectoryExistence(brunoFilePath);
@@ -94,7 +93,7 @@ const buildQuery = (params) => {
     lodash_1.default.each(params, (param) => {
         _query.push({
             name: param.name,
-            value: param.schema && param.schema.default || "",
+            value: (param.schema && param.schema.default) || "",
             enabled: param.required,
         });
     });
@@ -108,6 +107,17 @@ const checkApi = (collectionData) => {
     return true;
 };
 exports.checkApi = checkApi;
+const checkIgnore = ({ method, path, ignoreFile, }) => {
+    var _a, _b;
+    if (!ignoreFile) {
+        return false;
+    }
+    if (method.operationId && ((_a = ignoreFile.ids) === null || _a === void 0 ? void 0 : _a.includes(method.operationId))) {
+        return true;
+    }
+    return (((_b = ignoreFile.folders) === null || _b === void 0 ? void 0 : _b.some((folder) => path.indexOf(folder) === 0)) ||
+        false);
+};
 const makeFolders = (outputPath, collectionData, mode) => {
     try {
         if (mode === "start")
@@ -187,13 +197,14 @@ const paramter = (method) => {
 | ---- | ---- | ----------- | -------- | ------ |
 `;
     (0, lodash_1.each)(method.parameters, (param) => {
-        const line = `| ${param.name} | ${param.schema && param.schema.type || 'type'} | ${param.description || ""} | ${param.required} | ${param.schema && param.schema.format || ""} |
+        const line = `| ${param.name} | ${(param.schema && param.schema.type) || "type"} | ${param.description || ""} | ${param.required} | ${(param.schema && param.schema.format) || ""} |
 `;
         docsJson += line;
     });
     return docsJson;
 };
-const makeBrunoFile = (seq, path, methodType, name, method, components) => {
+const makeBrunoFile = ({ seq, path, methodType, name, method, components, config, }) => {
+    var _a;
     const meta = {
         name,
         type: "http",
@@ -204,10 +215,11 @@ const makeBrunoFile = (seq, path, methodType, name, method, components) => {
         url: "{{host}}" + path,
     };
     const auth = {};
-
-    if (method.operationId !== "login") {
-        auth.bearer = { token: "{{accessToken}}" };
-        http.auth = "bearer";
+    if (config &&
+        (config === null || config === void 0 ? void 0 : config.auth) &&
+        !checkIgnore({ method, path, ignoreFile: (_a = config === null || config === void 0 ? void 0 : config.auth) === null || _a === void 0 ? void 0 : _a.ignore })) {
+        http.auth = config.auth.type || "none";
+        auth[config.auth.type || "none"] = config.auth.values;
     }
     const query = buildQuery(method.parameters || []);
     let docsJson = undefined;
@@ -226,7 +238,6 @@ OperationId : \`${method.operationId}\`
 `;
     }
     const script = {};
-
     const docs = (method.summary || docsJson) &&
         `# ${method.summary}
 
@@ -238,7 +249,7 @@ ${docsJson || ""}
     const content = (0, jsonToBru_1.default)(json);
     return content;
 };
-const makeBruno = (outputPath, collectionData, mode) => {
+const makeBruno = ({ outputPath, collectionData, mode, config, }) => {
     lodash_1.default.each(collectionData.paths, (colletionPath, pathName) => {
         let seq = 1;
         lodash_1.default.each(colletionPath, (method, methodType) => {
@@ -246,15 +257,33 @@ const makeBruno = (outputPath, collectionData, mode) => {
             const tag = method.tags[0];
             let fileBaseName = ((_a = method.summary) === null || _a === void 0 ? void 0 : _a.trim()) || method.operationId || "noname";
             const filePath = path_1.default.join(outputPath, pathName, fileBaseName + ".bru");
-            const data = makeBrunoFile(seq++, pathName, methodType, fileBaseName, method, collectionData.components);
             if (mode == "update" && fs_extra_1.default.existsSync(filePath)) {
-                console.log("📢 Skip : ", filePath);
+                console.log("Skip : ", filePath);
                 return;
             }
-            console.log("📢 Create : ", filePath);
+            if (config &&
+                config.update &&
+                checkIgnore({
+                    method,
+                    path: pathName,
+                    ignoreFile: config.update.ignore,
+                })) {
+                console.log(`ignore : ${pathName} ${method.operationId}`);
+                return;
+            }
+            const data = makeBrunoFile({
+                seq: seq++,
+                path: pathName,
+                methodType,
+                name: fileBaseName,
+                method,
+                components: collectionData.components,
+                config,
+            });
             if (!fs_extra_1.default.existsSync(path_1.default.dirname(filePath))) {
                 fs_extra_1.default.mkdirSync(path_1.default.dirname(filePath), { recursive: true });
             }
+            console.log('Add : ', filePath);
             fs_extra_1.default.writeFileSync(filePath, data, "utf-8");
         });
     });

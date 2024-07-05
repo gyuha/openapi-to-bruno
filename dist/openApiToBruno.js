@@ -18,6 +18,7 @@ const collection_1 = require("./collection");
 const commander_1 = require("commander");
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
+const js_yaml_1 = __importDefault(require("js-yaml"));
 // URL 형식을 확인하는 함수
 function isUrl(string) {
     const urlPattern = new RegExp("^(https?:\\/\\/)?" + // 프로토콜
@@ -58,6 +59,19 @@ function fetchDataOrReadFile(source) {
         }
     });
 }
+function readConfigFile(filePath) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const data = fs_1.default.readFileSync(filePath, "utf8");
+            return filePath.endsWith(".yaml") || filePath.endsWith(".yml")
+                ? js_yaml_1.default.load(data)
+                : JSON.parse(data);
+        }
+        catch (error) {
+            throw new Error(`Failed to read config file: ${filePath}`);
+        }
+    });
+}
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -68,6 +82,7 @@ function main() {
                 .option("-s, --source <type>", "OpenAPI URL or file path")
                 .option("-o, --output <type>", "Output folder")
                 .option("-u, --update", "Do not delete existing files")
+                .option("-c, --config <type>", "Config file")
                 .parse(process.argv);
             const options = commander_1.program.opts();
             let mode = "start";
@@ -83,6 +98,17 @@ function main() {
                 console.error("Error: Output folder must be specified");
                 process.exit(1);
             }
+            let config = undefined;
+            if (options.config) {
+                try {
+                    config = yield readConfigFile(options.config);
+                    console.log("Config file loaded:", config);
+                }
+                catch (error) {
+                    console.error(error.message);
+                    process.exit(1);
+                }
+            }
             const outputPath = path_1.default.join(options.output);
             // outputPath 폴더가 존재하지 않는 경우 폴더를 생성합니다.
             if (!fs_1.default.existsSync(outputPath)) {
@@ -96,7 +122,12 @@ function main() {
                 return;
             }
             (0, collection_1.makeBurnoRootFile)(outputPath, "1", collectionData.info.title);
-            (0, collection_1.makeBruno)(outputPath, collectionData, mode);
+            (0, collection_1.makeBruno)({
+                outputPath,
+                collectionData,
+                mode,
+                config,
+            });
         }
         catch (error) {
             console.error(error.message);
@@ -104,5 +135,4 @@ function main() {
         }
     });
 }
-console.log("🚀 Start converting OpenAPI to Bruno...");
 main();
