@@ -2,6 +2,7 @@ import fs from "fs-extra";
 import _, { each, method } from "lodash";
 import path from "path";
 import jsonToBru from "./jsonToBru";
+import c from 'ansi-colors';
 import {
   MethodClass,
   OpenAPI,
@@ -11,6 +12,7 @@ import {
   ConfigFile,
   Mode,
   IgnoreFile,
+  BrunoJson,
 } from "./types";
 
 function ensureDirectoryExistence(filePath: string) {
@@ -22,12 +24,12 @@ function ensureDirectoryExistence(filePath: string) {
   fs.mkdirSync(dirname);
 }
 
-function makeBurnoRootFile(outputPath: string, version: string, name: string) {
+function makeBurnoRootFile(outputPath: string, config: BrunoJson | undefined) {
   const json = {
-    version,
-    name,
-    type: "collection",
-    ignore: ["node_modules", ".git"],
+    version: config?.version || "1",
+    name: config?.name || "Untitled",
+    type: config?.type || "collection",
+    ignore: config?.ignore || ["node_modules", ".git"],
   };
 
   const brunoFilePath = path.join(outputPath, "bruno.json");
@@ -335,7 +337,7 @@ const makeBruno = ({
           ignoreFile: config.update.ignore,
         })
       ) {
-        console.log(`ignore : ${pathName} ${method.operationId}`);
+        console.log(`${c.red('ignore')} : ${pathName} ${method.operationId}`);
         return;
       }
 

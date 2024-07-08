@@ -20,6 +20,8 @@ export interface Info {
   ignore?: string[];
 }
 
+
+
 export interface TagClass {
     name:        string;
     description: string;
@@ -107,8 +109,8 @@ export interface ContentSchema {
 }
 
 export interface PostResponse {
-  description: ResponseDescription;
-  content: FluffyContent;
+  description: string;
+  content: string;
 }
 
 export interface FluffyContent {
@@ -129,11 +131,12 @@ export enum PurpleType {
   String = "string",
 }
 
-export enum ResponseDescription {
-  NotFound = "Not Found",
-  Ok = "OK",
-  The0전체 = "0.전체",
-  전체 = "전체",
+
+export interface BrunoJson {
+  name?: string;
+  version?: string;
+  type?: string;
+  ignore?: string[];
 }
 
 export type Mode = "start" | "update";
@@ -144,9 +147,7 @@ export interface IgnoreFile {
 }
 
 export interface ConfigFile {
-  info?: {
-    title?: string;
-  };
+  bruno?: BrunoJson;
   update?: {
     ignore?: IgnoreFile;
   };

@@ -120,7 +120,7 @@ async function main() {
       return;
     }
 
-    makeBurnoRootFile(outputPath, "1", collectionData.info.name);
+    makeBurnoRootFile(outputPath, config?.bruno);
 
     makeBruno({
       outputPath,
