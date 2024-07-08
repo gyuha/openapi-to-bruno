@@ -13,7 +13,6 @@ import fs from "fs";
 import path from "path";
 import yaml from "js-yaml";
 
-// URL 형식을 확인하는 함수
 function isUrl(string: string): boolean {
   const urlPattern = new RegExp(
     "^(https?:\\/\\/)?" + // 프로토콜
@@ -23,32 +22,27 @@ function isUrl(string: string): boolean {
       "(\\?[;&a-z\\d%_.~+=-]*)?" + // 쿼리스트링
       "(\\#[-a-z\\d_]*)?$",
     "i"
-  ); // 해시태그들
+  );
   return !!urlPattern.test(string);
 }
 
 async function fetchDataOrReadFile(source: string) {
   if (!source) {
-    // source가 제공되지 않은 경우 에러를 발생시킵니다.
     throw new Error("Source is required and cannot be empty.");
   }
 
   if (isUrl(source)) {
     try {
-      // URL인 경우 axios를 사용하여 데이터를 가져옵니다.
       const response = await axios.get(source);
       return response.data;
     } catch (error) {
-      // URL로 데이터를 가져오는 데 실패한 경우
       throw new Error(`Failed to fetch data from URL: ${source}`);
     }
   } else {
     try {
-      // URL이 아닌 경우 파일 시스템에서 파일을 읽습니다.
       const data = fs.readFileSync(source, "utf8");
       return data;
     } catch (error) {
-      // 파일을 읽는 데 실패한 경우
       throw new Error(`Failed to read file: ${source}`);
     }
   }
@@ -110,7 +104,7 @@ async function main() {
 
     const outputPath = path.join(options.output);
 
-    // outputPath 폴더가 존재하지 않는 경우 폴더를 생성합니다.
+    // Create the outputPath folder if it doesn't exist.
     if (!fs.existsSync(outputPath)) {
       fs.mkdirSync(outputPath, { recursive: true });
     }
@@ -125,6 +119,7 @@ async function main() {
       return;
     }
 
+    console.log('📢[openApiToBruno.ts:122]: collectionData: ', collectionData);
     makeBurnoRootFile(outputPath, "1", collectionData.info.title);
 
     makeBruno({

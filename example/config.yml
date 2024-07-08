@@ -1,8 +1,14 @@
-info:
+bruno:
+  versin: "1"
   title: Best Fetstore
+  type: "collection"
+  ignore:
+    - "node_modules"
+    - ".git"
 
 update:
   ignore:
+    addNew: true
     folders:
       - /pet/findByTags
       - /api/admin

@@ -22,6 +22,38 @@ Options:
 npx github:gyuha/openapi-to-bruno -s [OpenAPI api-docs url] -o [Output folder]
 ```
 
+## Config file
+
+```
+bruno:
+  version: "1"
+  name: "Best Fetstore"
+  type: "collectin"
+  ignore:
+    - "node_modules"
+    - ".git"
+
+update:
+  ignore:
+    addNew: true
+    folders:
+      - /pet/findByTags
+      - /api/admin
+    ids:
+      - addPet
+      - uploadFile
+
+auth:
+  type: bearer
+  value:
+    token: "{{accessToken}}"
+  ignore:
+    ids:
+      - login
+    folders:
+      - /user
+```
+
 ### example
 ```bash
 npx --verbose github:gyuha/openapi-to-bruno -s https://petstore.swagger.io/v2/swagger.json -o ./output
