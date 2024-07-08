@@ -11,9 +11,10 @@ update:
     addNew: true
     folders:
       - /pet/findByTags
-      - /api/admin
+      # - /api/admin
     ids:
       - addPet
+      - clearCart
       - uploadFile
 
 auth:

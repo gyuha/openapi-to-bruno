@@ -344,7 +344,7 @@ const makeBruno = ({
       }
 
       if (fs.existsSync(filePath)) {
-        console.log(`🆕 ${blue('UPDATE')} : ${filePath}`);
+        console.log(`${blue('UPDATE')} : ${filePath}`);
       } else {
         console.log(`🆕 ${green('ADD')} : ${filePath}`);
       }
