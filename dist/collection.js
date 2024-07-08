@@ -31,6 +31,7 @@ const fs_extra_1 = __importDefault(require("fs-extra"));
 const lodash_1 = __importStar(require("lodash"));
 const path_1 = __importDefault(require("path"));
 const jsonToBru_1 = __importDefault(require("./jsonToBru"));
+const ansi_colors_1 = __importDefault(require("ansi-colors"));
 function ensureDirectoryExistence(filePath) {
     var dirname = path_1.default.dirname(filePath);
     if (fs_extra_1.default.existsSync(dirname)) {
@@ -39,12 +40,12 @@ function ensureDirectoryExistence(filePath) {
     ensureDirectoryExistence(dirname);
     fs_extra_1.default.mkdirSync(dirname);
 }
-function makeBurnoRootFile(outputPath, version, name) {
+function makeBurnoRootFile(outputPath, config) {
     const json = {
-        version,
-        name,
-        type: "collection",
-        ignore: ["node_modules", ".git"],
+        version: (config === null || config === void 0 ? void 0 : config.version) || "1",
+        name: (config === null || config === void 0 ? void 0 : config.name) || "Untitled",
+        type: (config === null || config === void 0 ? void 0 : config.type) || "collection",
+        ignore: (config === null || config === void 0 ? void 0 : config.ignore) || ["node_modules", ".git"],
     };
     const brunoFilePath = path_1.default.join(outputPath, "bruno.json");
     ensureDirectoryExistence(brunoFilePath);
@@ -258,7 +259,7 @@ const makeBruno = ({ outputPath, collectionData, mode, config, }) => {
             let fileBaseName = ((_a = method.summary) === null || _a === void 0 ? void 0 : _a.trim()) || method.operationId || "noname";
             const filePath = path_1.default.join(outputPath, pathName, fileBaseName + ".bru");
             if (mode == "update" && fs_extra_1.default.existsSync(filePath)) {
-                console.log("Skip : ", filePath);
+                console.log(`${ansi_colors_1.default.yellow('SKIP')} : ${filePath}`);
                 return;
             }
             if (config &&
@@ -268,7 +269,7 @@ const makeBruno = ({ outputPath, collectionData, mode, config, }) => {
                     path: pathName,
                     ignoreFile: config.update.ignore,
                 })) {
-                console.log(`ignore : ${pathName} ${method.operationId}`);
+                console.log(`${ansi_colors_1.default.red('IGNORE')} : ${pathName} ${method.operationId}`);
                 return;
             }
             const data = makeBrunoFile({
@@ -283,7 +284,7 @@ const makeBruno = ({ outputPath, collectionData, mode, config, }) => {
             if (!fs_extra_1.default.existsSync(path_1.default.dirname(filePath))) {
                 fs_extra_1.default.mkdirSync(path_1.default.dirname(filePath), { recursive: true });
             }
-            console.log('Add : ', filePath);
+            console.log(`ADD : ${filePath}`);
             fs_extra_1.default.writeFileSync(filePath, data, "utf-8");
         });
     });

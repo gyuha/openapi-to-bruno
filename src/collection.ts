@@ -324,7 +324,7 @@ const makeBruno = ({
       const filePath = path.join(outputPath, pathName, fileBaseName + ".bru");
 
       if (mode == "update" && fs.existsSync(filePath)) {
-        console.log("Skip : ", filePath);
+        console.log(`${c.yellow('SKIP')} : ${filePath}`);
         return;
       }
 
@@ -337,7 +337,7 @@ const makeBruno = ({
           ignoreFile: config.update.ignore,
         })
       ) {
-        console.log(`${c.red('ignore')} : ${pathName} ${method.operationId}`);
+        console.log(`${c.red('IGNORE')} : ${pathName} ${method.operationId}`);
         return;
       }
 
@@ -355,7 +355,7 @@ const makeBruno = ({
         fs.mkdirSync(path.dirname(filePath), { recursive: true });
       }
 
-      console.log('Add : ', filePath);
+      console.log(`ADD : ${filePath}`);
       fs.writeFileSync(filePath, data, "utf-8");
     });
   });
