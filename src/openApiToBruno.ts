@@ -6,7 +6,7 @@ import {
   makeBurnoRootFile,
   makeFolders,
 } from "./collection";
-import { ConfigFile, Mode, OpenAPI } from "./types";
+import { ConfigFile, OpenAPI } from "./types";
 
 import { program } from "commander";
 import fs from "fs";
@@ -72,12 +72,7 @@ async function main() {
       .parse(process.argv);
 
     const options = program.opts();
-    let mode: Mode = "start";
 
-    if (options.update) {
-      mode = "update";
-      console.log("📢 Update mode");
-    }
 
     if (!options.source) {
       console.error(
@@ -115,7 +110,7 @@ async function main() {
       return;
     }
 
-    if (!makeFolders(outputPath, collectionData.tags, mode)) {
+    if (!makeFolders(outputPath, collectionData.tags)) {
       return;
     }
 
@@ -124,7 +119,6 @@ async function main() {
     makeBruno({
       outputPath,
       collectionData,
-      mode,
       config,
     });
   } catch (error: any) {

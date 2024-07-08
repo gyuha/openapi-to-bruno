@@ -139,8 +139,6 @@ export interface BrunoJson {
   ignore?: string[];
 }
 
-export type Mode = "start" | "update";
-
 export interface IgnoreFile {
   folders?: string[];
   ids?: string[];

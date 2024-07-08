@@ -2,15 +2,13 @@ import fs from "fs-extra";
 import _, { each, method } from "lodash";
 import path from "path";
 import jsonToBru from "./jsonToBru";
-import {blue, red, yellow} from 'colorette';
+import {blue, green, red, yellow} from 'colorette';
 import {
   MethodClass,
   OpenAPI,
   PurpleParameter,
   TagClass,
-  RequestBody,
   ConfigFile,
-  Mode,
   IgnoreFile,
   BrunoJson,
 } from "./types";
@@ -120,11 +118,8 @@ const checkIgnore = ({
 const makeFolders = (
   outputPath: string,
   collectionData: TagClass[],
-  mode: Mode
 ) => {
   try {
-    if (mode === "start") deleteFolderRecursive(outputPath);
-
     _.each(collectionData, (tag: TagClass) => {
       const folderName = path.join(outputPath, exscapePath(tag.name));
       if (!fs.existsSync(folderName)) {
@@ -305,12 +300,10 @@ ${docsJson || ""}
 const makeBruno = ({
   outputPath,
   collectionData,
-  mode,
   config,
 }: {
   outputPath: string;
   collectionData: OpenAPI;
-  mode: Mode;
   config?: ConfigFile;
 }) => {
   _.each(collectionData.paths, (colletionPath, pathName) => {
@@ -322,11 +315,6 @@ const makeBruno = ({
         method.summary?.trim() || method.operationId || "noname";
 
       const filePath = path.join(outputPath, pathName, fileBaseName + ".bru");
-
-      if (mode == "update" && fs.existsSync(filePath)) {
-        console.log(`${yellow('SKIP')} : ${filePath}`);
-        return;
-      }
 
       if (
         config &&
@@ -355,7 +343,11 @@ const makeBruno = ({
         fs.mkdirSync(path.dirname(filePath), { recursive: true });
       }
 
-      console.log(`${blue('ADD')} : ${filePath}`);
+      if (fs.existsSync(filePath)) {
+        console.log(`🆕 ${blue('UPDATE')} : ${filePath}`);
+      } else {
+        console.log(`🆕 ${green('ADD')} : ${filePath}`);
+      }
       fs.writeFileSync(filePath, data, "utf-8");
     });
   });
