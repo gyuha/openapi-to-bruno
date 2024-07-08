@@ -2,7 +2,7 @@ import fs from "fs-extra";
 import _, { each, method } from "lodash";
 import path from "path";
 import jsonToBru from "./jsonToBru";
-import c from 'ansi-colors';
+import {blue, red, yellow} from 'colorette';
 import {
   MethodClass,
   OpenAPI,
@@ -324,7 +324,7 @@ const makeBruno = ({
       const filePath = path.join(outputPath, pathName, fileBaseName + ".bru");
 
       if (mode == "update" && fs.existsSync(filePath)) {
-        console.log(`${c.yellow('SKIP')} : ${filePath}`);
+        console.log(`${yellow('SKIP')} : ${filePath}`);
         return;
       }
 
@@ -337,7 +337,7 @@ const makeBruno = ({
           ignoreFile: config.update.ignore,
         })
       ) {
-        console.log(`${c.red('IGNORE')} : ${pathName} ${method.operationId}`);
+        console.log(`${red('IGNORE')} : ${pathName} ${method.operationId}`);
         return;
       }
 
@@ -355,7 +355,7 @@ const makeBruno = ({
         fs.mkdirSync(path.dirname(filePath), { recursive: true });
       }
 
-      console.log(`ADD : ${filePath}`);
+      console.log(`${blue('ADD')} : ${filePath}`);
       fs.writeFileSync(filePath, data, "utf-8");
     });
   });

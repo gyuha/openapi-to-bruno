@@ -12,7 +12,6 @@ import { program } from "commander";
 import fs from "fs";
 import path from "path";
 import yaml from "js-yaml";
-import c from 'ansi-colors';
 
 function isUrl(string: string): boolean {
   const urlPattern = new RegExp(
