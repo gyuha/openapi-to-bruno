@@ -14,9 +14,10 @@ export interface Server {
 }
 
 export interface Info {
-  title: string;
-  description: string;
-  version: string;
+  name?: string;
+  version?: string;
+  type?: string;
+  ignore?: string[];
 }
 
 export interface TagClass {

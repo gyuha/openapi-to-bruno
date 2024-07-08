@@ -12,6 +12,7 @@ import { program } from "commander";
 import fs from "fs";
 import path from "path";
 import yaml from "js-yaml";
+import c from 'ansi-colors';
 
 function isUrl(string: string): boolean {
   const urlPattern = new RegExp(
@@ -119,8 +120,7 @@ async function main() {
       return;
     }
 
-    console.log('📢[openApiToBruno.ts:122]: collectionData: ', collectionData);
-    makeBurnoRootFile(outputPath, "1", collectionData.info.title);
+    makeBurnoRootFile(outputPath, "1", collectionData.info.name);
 
     makeBruno({
       outputPath,
