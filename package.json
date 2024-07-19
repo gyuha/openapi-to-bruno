@@ -4,8 +4,8 @@
   "description": "",
   "main": "./dist/openApiToBruno.js",
   "scripts": {
-    "start": "ts-node src/openApiToBruno.ts -s http://172.30.0.122:8080/v3/api-docs -o ./output -c ./example/config.yml",
-    "start:npx": "npx . -s http://172.30.0.122:8080/v3/api-docs -o ./output -c ./example/config.yml",
+    "start": "ts-node src/openApiToBruno.ts -s https://petstore.swagger.io/v2/swagger.json -o ./output -c ./example/config.yml",
+    "start:npx": "npx . -s https://petstore.swagger.io/v2/swagger.json -o ./output -c ./example/config.yml",
     "update": "ts-node src/openApiToBruno.ts -u",
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
