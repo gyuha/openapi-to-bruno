@@ -146,6 +146,8 @@ export interface IgnoreFile {
 
 export interface ConfigFile {
   bruno?: BrunoJson;
+  source?: string;
+  output?: string;
   update?: {
     ignore?: IgnoreFile;
   };

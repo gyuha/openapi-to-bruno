@@ -6,6 +6,9 @@ bruno:
     - "node_modules"
     - ".git"
 
+source: "https://petstore.swagger.io/v2/swagger.json"
+output: "example/output"
+
 update:
   ignore:
     addNew: true
