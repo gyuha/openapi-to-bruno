@@ -1,6 +1,6 @@
 bruno:
   versin: "1"
-  title: Best Fetstore
+  name: Best Fetstore
   type: "collection"
   ignore:
     - "node_modules"

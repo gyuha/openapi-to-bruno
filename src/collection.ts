@@ -23,14 +23,20 @@ function ensureDirectoryExistence(filePath: string) {
 }
 
 function makeBurnoRootFile(outputPath: string, config: BrunoJson | undefined) {
+
+  const brunoFilePath = path.join(outputPath, "bruno.json");
+
+  // if file already exists, do not overwrite
+  if (brunoFilePath && fs.existsSync(brunoFilePath)) {
+    return;
+  }
+
   const json = {
     version: config?.version || "1",
     name: config?.name || "Untitled",
     type: config?.type || "collection",
     ignore: config?.ignore || ["node_modules", ".git"],
   };
-
-  const brunoFilePath = path.join(outputPath, "bruno.json");
   ensureDirectoryExistence(brunoFilePath);
 
   fs.writeFileSync(brunoFilePath, JSON.stringify(json, null, 2));
@@ -124,8 +130,6 @@ const makeFolders = (
       const folderName = path.join(outputPath, exscapePath(tag.name));
       if (!fs.existsSync(folderName)) {
         fs.mkdirSync(folderName, { recursive: true });
-      } else {
-        // console.log(`Directory already exists: ${tag.name}`);
       }
     });
   } catch (err) {
