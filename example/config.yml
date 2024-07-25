@@ -13,6 +13,7 @@ update:
   ignore:
     addNew: true
     folders:
+      - /environments
       - /pet/findByTags
       # - /api/admin
     ids:

@@ -2,7 +2,7 @@ import fs from "fs-extra";
 import _, { each, method } from "lodash";
 import path from "path";
 import jsonToBru from "./jsonToBru";
-import {blue, green, red, yellow} from 'colorette';
+import { blue, green, red, yellow } from "colorette";
 import {
   MethodClass,
   OpenAPI,
@@ -23,7 +23,6 @@ function ensureDirectoryExistence(filePath: string) {
 }
 
 function makeBurnoRootFile(outputPath: string, config: BrunoJson | undefined) {
-
   const brunoFilePath = path.join(outputPath, "bruno.json");
 
   // if file already exists, do not overwrite
@@ -116,15 +115,12 @@ const checkIgnore = ({
     return true;
   }
   return (
-    ignoreFile.folders?.some((folder: string) =>  path.indexOf(folder) === 0) ||
+    ignoreFile.folders?.some((folder: string) => path.indexOf(folder) === 0) ||
     false
   );
 };
 
-const makeFolders = (
-  outputPath: string,
-  collectionData: TagClass[],
-) => {
+const makeFolders = (outputPath: string, collectionData: TagClass[]) => {
   try {
     _.each(collectionData, (tag: TagClass) => {
       const folderName = path.join(outputPath, exscapePath(tag.name));
@@ -296,6 +292,7 @@ ${docsJson || ""}
 `;
 
   const json = { meta, http, auth, docs, script, body, query };
+  console.log('📢[collection.ts:295]: auth: ', auth);
   const content = jsonToBru(json);
 
   return content;
@@ -319,7 +316,8 @@ const makeBruno = ({
         method.summary?.trim() || method.operationId || "noname";
 
       const filePath = path.join(outputPath, pathName, fileBaseName + ".bru");
-
+      
+      // check ignore file
       if (
         config &&
         config.update &&
@@ -329,7 +327,7 @@ const makeBruno = ({
           ignoreFile: config.update.ignore,
         })
       ) {
-        console.log(`${red('IGNORE')} : ${pathName} ${method.operationId}`);
+        console.log(`${red("IGNORE")} : ${pathName} ${method.operationId}`);
         return;
       }
 
@@ -348,9 +346,9 @@ const makeBruno = ({
       }
 
       if (fs.existsSync(filePath)) {
-        console.log(`${blue('UPDATE')} : ${filePath}`);
+        console.log(`${blue("UPDATE")} : ${filePath}`);
       } else {
-        console.log(`🆕 ${green('ADD')} : ${filePath}`);
+        console.log(`🆕 ${green("ADD")} : ${filePath}`);
       }
       fs.writeFileSync(filePath, data, "utf-8");
     });
