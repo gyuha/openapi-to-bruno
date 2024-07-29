@@ -23,7 +23,7 @@ update:
 
 auth:
   type: bearer
-  value:
+  bearer:
     token: "{{accessToken}}"
   ignore:
     ids:

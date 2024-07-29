@@ -248,7 +248,7 @@ const makeBrunoFile = ({
     url: "{{host}}" + path,
   };
 
-  const auth: any = {};
+  let auth: any = {};
 
   if (
     config &&
@@ -256,7 +256,7 @@ const makeBrunoFile = ({
     !checkIgnore({ method, path, ignoreFile: config?.auth?.ignore })
   ) {
     http.auth = config.auth.type || "none";
-    auth[config.auth.type || "none"] = config.auth.values;
+    auth = {...config?.auth};
   }
 
   const query = buildQuery(method.parameters || []);
@@ -292,7 +292,6 @@ ${docsJson || ""}
 `;
 
   const json = { meta, http, auth, docs, script, body, query };
-  console.log('📢[collection.ts:295]: auth: ', auth);
   const content = jsonToBru(json);
 
   return content;
